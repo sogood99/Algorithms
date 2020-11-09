@@ -1,5 +1,0 @@
-<template T>
-struct BinaryTree{
-
-
-};
