@@ -5,8 +5,7 @@ namespace BinaryTree {
 template <typename T>
 class node{
 public:
-    node(T data): m_Data(data){}
-    node(T data, node* leftChild, node* rightChild): m_Data(data),
+    node(T data = T(), node* leftChild = nullptr, node* rightChild = nullptr): m_Data(data),
         m_LeftChild(leftChild), m_RightChild(rightChild){}
     ~node();
 protected:
@@ -14,12 +13,16 @@ protected:
     node* m_LeftChild = nullptr;
     node* m_RightChild = nullptr;
 public:
-    void createNode(T data);
+    void createLeftNode(T data = T());
+    void createRightNode(T data = T());
     void setValue(T data);
     void setLeftChild(node* leftChild);
     void setRightChild(node* rightChild);
+
     node<T>* getLeftChild(void);
     node<T>* getRightChild(void);
+
+    void inorderTraversal(void (*vFunctionCall)(T arg));
 };
 }
 
@@ -34,19 +37,16 @@ BinaryTree::node<T>::~node(){
 }
 
 template<typename T>
-void BinaryTree::node<T>::createNode(T data){
-    if (data <= m_Data){
-        if (m_LeftChild != nullptr){
-            m_LeftChild = new BinaryTree::node<T>(data);
-        }else{
-            m_LeftChild->createNode(data);
-        }
-    }else{
-        if (m_RightChild != nullptr){
-            m_RightChild = new BinaryTree::node<T>(data);
-        }else{
-            m_RightChild->createNode(data);
-        }
+void BinaryTree::node<T>::createLeftNode(T data){
+    if (m_LeftChild == nullptr){
+        m_LeftChild = new BinaryTree::node<T>(data);
+    }
+}
+
+template<typename T>
+void BinaryTree::node<T>::createRightNode(T data){
+    if (m_RightChild == nullptr){
+        m_RightChild = new BinaryTree::node<T>(data);
     }
 }
 
@@ -73,6 +73,17 @@ BinaryTree::node<T>* BinaryTree::node<T>::getLeftChild(void){
 template<typename T>
 BinaryTree::node<T>* BinaryTree::node<T>::getRightChild(void){
     return m_RightChild;
+}
+
+template<typename T>
+void BinaryTree::node<T>::inorderTraversal(void (*vFunctionCall)(T)){
+    if (m_LeftChild != nullptr){
+        m_LeftChild->inorderTraversal(vFunctionCall);
+    }
+    vFunctionCall(m_Data);
+    if (m_RightChild != nullptr){
+        m_RightChild->inorderTraversal(vFunctionCall);
+    }
 }
 
 #endif // BINARYTREE_HPP
