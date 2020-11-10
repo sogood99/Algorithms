@@ -1,2 +1,2 @@
-# Algorithms
-Documentation and implimentation of many algorithms (mainly in C++).
+# Data Structures and Algorithms
+Documentation and implementation of many algorithms (mainly in C++).

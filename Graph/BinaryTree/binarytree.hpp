@@ -8,23 +8,28 @@ public:
     node(T data = T(), node* leftChild = nullptr, node* rightChild = nullptr): m_Data(data),
         m_LeftChild(leftChild), m_RightChild(rightChild){}
     ~node();
+
 protected:
     T m_Data;
     node* m_LeftChild = nullptr;
     node* m_RightChild = nullptr;
-public:
-    void createLeftNode(T data = T());
-    void createRightNode(T data = T());
-    void setValue(T data);
-    void setLeftChild(node* leftChild);
-    void setRightChild(node* rightChild);
 
+public:
+    T getData(void);
     node<T>* getLeftChild(void);
     node<T>* getRightChild(void);
 
-    void inorderTraversal(void (*vFunctionCall)(T arg));
-    void preorderTraversal(void (*vFunctionCall)(T arg));
-    void postorderTraversal(void (*vFunctionCall)(T arg));
+    void inorderTraversal(void (*vFunctionCall)(node* arg));
+    void preorderTraversal(void (*vFunctionCall)(node* arg));
+    void postorderTraversal(void (*vFunctionCall)(node* arg));
+
+protected:
+    void createLeftNode(T data = T());
+    void createRightNode(T data = T());
+
+    void setValue(T data);
+    void setLeftChild(node* leftChild);
+    void setRightChild(node* rightChild);
 };
 }
 
@@ -78,19 +83,24 @@ BinaryTree::node<T>* BinaryTree::node<T>::getRightChild(void){
 }
 
 template<typename T>
-void BinaryTree::node<T>::inorderTraversal(void (*vFunctionCall)(T)){
+T BinaryTree::node<T>::getData(void){
+    return m_Data;
+}
+
+template<typename T>
+void BinaryTree::node<T>::inorderTraversal(void (*vFunctionCall)(node*)){
     if (m_LeftChild != nullptr){
         m_LeftChild->inorderTraversal(vFunctionCall);
     }
-    vFunctionCall(m_Data);
+    vFunctionCall(this);
     if (m_RightChild != nullptr){
         m_RightChild->inorderTraversal(vFunctionCall);
     }
 }
 
 template<typename T>
-void BinaryTree::node<T>::preorderTraversal(void (*vFunctionCall)(T)){
-    vFunctionCall(m_Data);
+void BinaryTree::node<T>::preorderTraversal(void (*vFunctionCall)(node*)){
+    vFunctionCall(this);
     if (m_LeftChild != nullptr){
         m_LeftChild->inorderTraversal(vFunctionCall);
     }
@@ -100,14 +110,14 @@ void BinaryTree::node<T>::preorderTraversal(void (*vFunctionCall)(T)){
 }
 
 template<typename T>
-void BinaryTree::node<T>::postorderTraversal(void (*vFunctionCall)(T)){
+void BinaryTree::node<T>::postorderTraversal(void (*vFunctionCall)(node*)){
     if (m_LeftChild != nullptr){
         m_LeftChild->inorderTraversal(vFunctionCall);
     }
     if (m_RightChild != nullptr){
         m_RightChild->inorderTraversal(vFunctionCall);
     }
-    vFunctionCall(m_Data);
+    vFunctionCall(this);
 }
 
 #endif // BINARYTREE_HPP
