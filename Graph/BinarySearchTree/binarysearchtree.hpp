@@ -11,18 +11,20 @@ public:
 
 protected:
     T m_Data;
-    node* m_LeftChild = nullptr;
-    node* m_RightChild = nullptr;
+    node<T>* m_LeftChild = nullptr;
+    node<T>* m_RightChild = nullptr;
+    node<T>* m_Parent = nullptr;
 
 public:
     void insert(T data);
     bool find(T data, void (*vFunctionCall)(node* arg));
-    bool remove(T data);
+    node<T>* remove(T data);
 
 public:
     T getData(void);
     node<T>* getLeftChild(void);
     node<T>* getRightChild(void);
+    node<T>* getParent(void);
 
     void inorderTraversal(void (*vFunctionCall)(node* arg));
     void preorderTraversal(void (*vFunctionCall)(node* arg));
@@ -35,8 +37,8 @@ protected:
     void setValue(T data);
     void setLeftChild(node* leftChild);
     void setRightChild(node* rightChild);
+    void setParent(node* parent);
 };
-}
 
 template<typename T>
 BinarySearchTree::node<T>::~node(){
@@ -78,71 +80,139 @@ bool BinarySearchTree::node<T>::find(T data, void (*vFunctionCall)(node* arg)){
 }
 
 template <typename T>
-bool BinarySearchTree::node<T>::remove(T data){
+node<T>* BinarySearchTree::node<T>::remove(T data){
     if (data == m_Data){
-        delete this;
-        return true;
-    }else if (m_LeftChild->getData() == data){
-        delete m_LeftChild;
-        m_LeftChild = nullptr;
-        return true;
-    }else if (data < m_Data){
+        node<T>* temp;
+        if (m_LeftChild == nullptr){
+            if (m_Parent->m_LeftChild == this){
+                m_Parent->m_LeftChild = m_RightChild;
+            }else{
+                m_Parent->m_RightChild = m_RightChild;
+            }
+            if (m_RightChild != nullptr){
+                m_RightChild->m_Parent = m_Parent;
+            }
+            temp = m_RightChild;
+
+            m_LeftChild = nullptr;
+            m_RightChild = nullptr;
+            delete this;
+            return temp;
+        }else if (m_RightChild == nullptr){
+            if (m_Parent->m_LeftChild == this){
+                m_Parent->m_LeftChild = m_LeftChild;
+            }else{
+                m_Parent->m_RightChild = m_LeftChild;
+            }
+            if (m_LeftChild != nullptr){
+                m_LeftChild->m_Parent = m_Parent;
+            }
+            temp = m_LeftChild;
+            m_LeftChild = nullptr;
+            delete this;
+            return temp;
+        }else if (m_RightChild->m_LeftChild == nullptr){
+            if (m_Parent->m_LeftChild == this){
+                m_Parent->m_LeftChild = m_RightChild;
+            }else{
+                m_Parent->m_RightChild = m_RightChild;
+            }
+            m_RightChild->m_Parent = m_Parent;
+            m_RightChild->m_LeftChild = m_LeftChild;
+            m_LeftChild->m_Parent = m_RightChild;
+            temp = m_RightChild;
+
+            m_LeftChild = nullptr;
+            m_RightChild = nullptr;
+            delete this;
+            return temp;
+        }else{
+            node<T>* n = m_RightChild;
+            while (n->m_LeftChild != nullptr){
+                n = n->m_LeftChild;
+            }
+            n->m_Parent->m_LeftChild = n->m_RightChild;
+            if (n->m_RightChild != nullptr){
+                n->m_RightChild->m_Parent = n->m_Parent;
+            }
+            m_LeftChild->m_Parent = n;
+            m_RightChild->m_Parent = n;
+            n->m_LeftChild = m_LeftChild;
+            n->m_RightChild = m_RightChild;
+            n->m_Parent = m_Parent;
+            if (m_Parent != nullptr){
+                if (m_Parent->m_LeftChild == this){
+                    m_Parent->m_LeftChild = n;
+                }else{
+                    m_Parent->m_RightChild = n;
+                }
+            }
+            m_LeftChild = nullptr;
+            m_RightChild = nullptr;
+            delete this;
+            return n;
+        }
+    }else if (data < m_Data && m_LeftChild != nullptr){
         return m_LeftChild->remove(data);
-    }else if (m_RightChild->getData() == data){
-        delete m_RightChild;
-        m_RightChild = nullptr;
-        return true;
-    }else{
+    }else if (m_RightChild != nullptr){
         return m_RightChild->remove(data);
     }
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::createLeftNode(T data){
+void node<T>::createLeftNode(T data){
     if (m_LeftChild == nullptr){
-        m_LeftChild = new BinarySearchTree::node<T>(data);
+        setLeftChild(new BinarySearchTree::node<T>(data));
     }
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::createRightNode(T data){
+void node<T>::createRightNode(T data){
     if (m_RightChild == nullptr){
-        m_RightChild = new BinarySearchTree::node<T>(data);
+        setRightChild(new BinarySearchTree::node<T>(data));
     }
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::setValue(T data){
+void node<T>::setValue(T data){
     m_Data = data;
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::setLeftChild(BinarySearchTree::node<T> *leftChild){
+void node<T>::setLeftChild(node<T> *leftChild){
     m_LeftChild = leftChild;
+    leftChild->setParent(this);
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::setRightChild(BinarySearchTree::node<T> *rightChild){
+void node<T>::setRightChild(node<T> *rightChild){
     m_RightChild = rightChild;
+    rightChild->setParent(this);
 }
 
 template<typename T>
-T BinarySearchTree::node<T>::getData(void){
+void node<T>::setParent(node<T> *parent){
+    m_Parent = parent;
+}
+
+
+template<typename T>
+T node<T>::getData(void){
     return m_Data;
 }
 
 template<typename T>
-BinarySearchTree::node<T>* BinarySearchTree::node<T>::getLeftChild(void){
+node<T>* node<T>::getLeftChild(void){
     return m_LeftChild;
 }
 
 template<typename T>
-BinarySearchTree::node<T>* BinarySearchTree::node<T>::getRightChild(void){
+node<T>* node<T>::getRightChild(void){
     return m_RightChild;
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::inorderTraversal(void (*vFunctionCall)(node*)){
+void node<T>::inorderTraversal(void (*vFunctionCall)(node*)){
     if (m_LeftChild != nullptr){
         m_LeftChild->inorderTraversal(vFunctionCall);
     }
@@ -153,7 +223,7 @@ void BinarySearchTree::node<T>::inorderTraversal(void (*vFunctionCall)(node*)){
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::preorderTraversal(void (*vFunctionCall)(node*)){
+void node<T>::preorderTraversal(void (*vFunctionCall)(node*)){
     vFunctionCall(this);
     if (m_LeftChild != nullptr){
         m_LeftChild->inorderTraversal(vFunctionCall);
@@ -164,7 +234,7 @@ void BinarySearchTree::node<T>::preorderTraversal(void (*vFunctionCall)(node*)){
 }
 
 template<typename T>
-void BinarySearchTree::node<T>::postorderTraversal(void (*vFunctionCall)(node*)){
+void node<T>::postorderTraversal(void (*vFunctionCall)(node*)){
     if (m_LeftChild != nullptr){
         m_LeftChild->inorderTraversal(vFunctionCall);
     }
@@ -172,6 +242,8 @@ void BinarySearchTree::node<T>::postorderTraversal(void (*vFunctionCall)(node*))
         m_RightChild->inorderTraversal(vFunctionCall);
     }
     vFunctionCall(this);
+}
+
 }
 
 #endif // BINARYSEARCTREE_HPP
