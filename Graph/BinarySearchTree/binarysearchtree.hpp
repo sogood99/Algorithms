@@ -73,9 +73,9 @@ bool BinarySearchTree::node<T>::find(T data, void (*vFunctionCall)(node* arg)){
         vFunctionCall(this);
         return true;
     }else if (data < m_Data){
-        return m_LeftChild->find(data);
+        return m_LeftChild->find(data, vFunctionCall);
     }else{
-        return m_RightChild->find(data);
+        return m_RightChild->find(data, vFunctionCall);
     }
 }
 
@@ -157,6 +157,7 @@ node<T>* BinarySearchTree::node<T>::remove(T data){
     }else if (m_RightChild != nullptr){
         return m_RightChild->remove(data);
     }
+    return nullptr;
 }
 
 template<typename T>
