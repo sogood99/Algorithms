@@ -7,6 +7,9 @@ template <typename T>
 class stack{
 public:
     stack(){}
+    stack(stack& other){
+        *this = other;
+    }
 protected:
     T m_Stack[MAX_STACK_SIZE];
     int m_Size = 0;

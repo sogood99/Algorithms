@@ -6,6 +6,9 @@ template <typename T>
 class queue{
 public:
     queue(){}
+    queue(queue& other){
+        *this = other;
+    }
 public:
     bool enque(T item);
     T dequeue();
