@@ -127,8 +127,9 @@ public:
 template <typename T>
 class edge{
 public:
-    edge(node<T>* from, node<T>* to): m_From(from), m_To(to) {};
+    edge(node<T>* from, node<T>* to, int weight = 1): m_From(from), m_To(to), m_Weight(weight){};
 public:
+    int m_Weight = 1;
     node<T>* m_From = nullptr;
     node<T>* m_To = nullptr;
 };
