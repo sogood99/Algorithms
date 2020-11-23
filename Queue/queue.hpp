@@ -13,6 +13,7 @@ public:
     bool enque(T item);
     T dequeue();
     bool empty();
+    T top();
 protected:
     T m_Queue[MAX_QUEUESIZE + 1];
     int m_Head = 0;
@@ -39,6 +40,14 @@ T queue<T>::dequeue(){
     m_Head ++;
     m_Head %= (MAX_QUEUESIZE+1);
     return m_Queue[last];
+}
+
+template <typename T>
+T queue<T>::top(){
+    if (empty()){
+        return T();
+    }
+    return m_Queue[m_Head];
 }
 
 template <typename T>
