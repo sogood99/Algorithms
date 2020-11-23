@@ -75,9 +75,10 @@ node<T>* node<T>::remove(node<T>* n){
     node<T>* nd = this;
     while (nd->getNext() != nullptr){
         if (nd->getNext() == n){
+            node<T>* temp = nd->getNext();
             nd->setNext(nd->getNext()->getNext());
-            nd->setNext(nullptr);
-            delete nd->getNext();
+            temp->setNext(nullptr);
+            delete temp;
             return this;
         }
     }
@@ -95,9 +96,10 @@ node<T>* node<T>::remove(T data){
     node<T>* nd = this;
     while (nd->getNext() != nullptr){
         if (nd->getNext()->getValue() == data){
+            node<T>* temp = nd->getNext();
             nd->setNext(nd->getNext()->getNext());
-            nd->setNext(nullptr);
-            delete nd->getNext();
+            temp->setNext(nullptr);
+            delete temp;
             return this;
         }
     }
@@ -113,6 +115,7 @@ node<T>* node<T>::find(T data){
         }
         nd = nd->getNext();
     }
+    return nullptr;
 }
 
 }
@@ -128,7 +131,7 @@ public:
     }
     void insert(T data);
     void remove(T data);
-    LinkList::node<T> find(T data);
+    LinkList::node<T>* find(T data);
 protected:
     LinkList::node<T>* m_Root = nullptr;
 };
@@ -153,7 +156,7 @@ void LinkedList<T>::remove(T data){
 }
 
 template <typename T>
-LinkList::node<T> LinkedList<T>::find(T data){
+LinkList::node<T>* LinkedList<T>::find(T data){
     return m_Root->find(data);
 }
 
