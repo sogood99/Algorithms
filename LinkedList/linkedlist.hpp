@@ -1,7 +1,7 @@
 #ifndef LINKEDLIST_HPP
 #define LINKEDLIST_HPP
 
-namespace LinkedList {
+namespace LinkList {
 
 template <typename T>
 class node{
@@ -21,6 +21,7 @@ public:
     void insert(T data);
     node<T>* remove(node<T>* n);
     node<T>* remove(T data);
+    node<T>* find(T data);
 protected:
     T m_Data = T();
     node* m_Next = nullptr;
@@ -48,34 +49,37 @@ node<T>* node<T>::getNext(){
 
 template <typename T>
 void node<T>::insert(node<T>* n){
-    if (m_Next == nullptr){
-        m_Next = n;
-    }else{
-        m_Next->insert(n);
-    }
+    node<T>* nd = this;
+    while(nd->getNext() != nullptr)
+        nd = nd->getNext();
+    nd->setNext(n);
 }
 
 template <typename T>
 void node<T>::insert(T data){
     node<T>* n = new node<T>(data);
-    insert(n);
+    node<T>* nd = this;
+    while(nd->getNext() != nullptr)
+        nd = nd->getNext();
+    nd->setNext(n);
 }
 
 template <typename T>
 node<T>* node<T>::remove(node<T>* n){
-    if (n == this){
+    if (this == n){
         node<T>* temp = m_Next;
         m_Next = nullptr;
         delete this;
         return temp;
-    }else if (m_Next != nullptr){
-        if (m_Next == n){
-            node<T>* temp = m_Next;
-            m_Next = m_Next->getNext();
-            temp->remove(n);
+    }
+    node<T>* nd = this;
+    while (nd->getNext() != nullptr){
+        if (nd->getNext() == n){
+            nd->setNext(nd->getNext()->getNext());
+            nd->setNext(nullptr);
+            delete nd->getNext();
             return this;
         }
-        m_Next->remove(n);
     }
     return this;
 }
@@ -87,18 +91,70 @@ node<T>* node<T>::remove(T data){
         m_Next = nullptr;
         delete this;
         return temp;
-    }else if (m_Next != nullptr){
-        if (m_Next->getValue() == data){
-            node<T>* temp = m_Next;
-            m_Next = m_Next->getNext();
-            temp->remove(data);
+    }
+    node<T>* nd = this;
+    while (nd->getNext() != nullptr){
+        if (nd->getNext()->getValue() == data){
+            nd->setNext(nd->getNext()->getNext());
+            nd->setNext(nullptr);
+            delete nd->getNext();
             return this;
         }
-        m_Next->remove(data);
     }
     return this;
 }
 
+template <typename T>
+node<T>* node<T>::find(T data){
+    node<T>* nd = this;
+    while (nd != nullptr){
+        if (nd->getValue() == data){
+            return nd;
+        }
+        nd = nd->getNext();
+    }
+}
+
+}
+
+template <typename T>
+class LinkedList{
+public:
+    LinkedList(LinkList::node<T>* n = nullptr): m_Root(n){}
+    ~LinkedList(){
+        if (m_Root != nullptr){
+            delete m_Root;
+        }
+    }
+    void insert(T data);
+    void remove(T data);
+    LinkList::node<T> find(T data);
+protected:
+    LinkList::node<T>* m_Root = nullptr;
+};
+
+
+template <typename T>
+void LinkedList<T>::insert(T data){
+    if (m_Root == nullptr){
+        m_Root = new LinkList::node<T>(data);
+    }else{
+        m_Root->insert(data);
+    }
+}
+
+template <typename T>
+void LinkedList<T>::remove(T data){
+    if (m_Root == nullptr){
+        return;
+    }else{
+        m_Root = m_Root->remove(data);
+    }
+}
+
+template <typename T>
+LinkList::node<T> LinkedList<T>::find(T data){
+    return m_Root->find(data);
 }
 
 #endif // LINKEDLIST_HPP
