@@ -26,8 +26,6 @@ T MaxHeap<T>::top(){
     return T();
 }
 
-#include <iostream>
-
 template <typename T>
 void MaxHeap<T>::insert(T value){
     int currentIndex = m_size;
@@ -46,10 +44,32 @@ void MaxHeap<T>::insert(T value){
             break;
         }
     }
-    for (int i = 1; i < m_size; i++){
-        std::cout << m_heap[i];
+}
+
+template <typename T>
+void MaxHeap<T>::removeTop(){
+    if (m_size <= 1){
+        return;
     }
-    std::cout<<std::endl;
+    m_heap[1] = m_heap[--m_size];
+    int currentIndex = 1;
+    while(currentIndex*2 < m_size){
+        T tempval;
+        if (m_heap[currentIndex] < m_heap[currentIndex*2] || m_heap[currentIndex] < m_heap[currentIndex*2+1]){
+            if (m_heap[currentIndex*2] > m_heap[currentIndex*2+1]){
+                tempval = m_heap[currentIndex*2];
+                m_heap[currentIndex*2] = m_heap[currentIndex];
+                m_heap[currentIndex] = tempval;
+            }else{
+                tempval = m_heap[currentIndex*2+1];
+                m_heap[currentIndex*2+1] = m_heap[currentIndex];
+                m_heap[currentIndex] = tempval;
+            }
+        }else{
+            return;
+        }
+        currentIndex*=2;
+    }
 }
 
 // Implimentation of minheap
