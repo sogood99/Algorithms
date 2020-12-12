@@ -1,7 +1,7 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
 
-// Array with table doubling (O(1) amortized)
+// Array with table doubling (O(1) amortized push pos)
 
 template <typename T>
 class vector{

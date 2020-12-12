@@ -26,6 +26,8 @@ T MaxHeap<T>::top(){
     return T();
 }
 
+// NOT FINISHED
+
 template <typename T>
 void MaxHeap<T>::insert(T value){
     int currentIndex = m_size;
@@ -70,6 +72,11 @@ void MaxHeap<T>::removeTop(){
         }
         currentIndex*=2;
     }
+}
+
+template <typename T>
+bool MaxHeap<T>::empty(){
+    return m_size == 1;
 }
 
 // Implimentation of minheap
