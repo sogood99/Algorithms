@@ -4,11 +4,12 @@
 template <typename T>
 class Pair{
 public:
-    Pair(T t1 = T(), T t2 = T()): m_first(t1), m_second(t2){}
+    Pair(T t1 = T(), T t2 = T(), int tmp = 0): m_first(t1), m_second(t2), temp(tmp){}
     ~Pair(){}
 public:
     T getX();
     T getY();
+    int temp;
 public:
     void setX(T x);
     void setY(T y);
@@ -204,35 +205,48 @@ void yRangeTree<T>::reportSubtree(yNode<T>* n, void (*vFunctionCall)(yNode<T>*))
 }
 
 template <typename T>
+bool yLessThan(Pair<T> p1, Pair<T> p2){
+    return p1.getY() < p2.getY() || (p1.getY() == p2.getY() && p1.getX() < p2.getX());
+}
+
+template <typename T>
+bool yLessThanEq(Pair<T> p1, Pair<T> p2){
+    return p1.getY() < p2.getY() || (p1.getY() == p2.getY() && p1.getX() <= p2.getX());
+}
+
+template <typename T>
 void yRangeTree<T>::rangeQuery(Pair<T> p1, Pair<T> p2, void (*vFunctionCall)(yNode<T>* arg)){
     yNode<T>* v = findSplittingNode(p1, p2);
     if (v->isLeaf()){
-        if (v->m_value >= p1 && v->m_value <= p2){
+//        if (v->m_value >= p1 && v->m_value <= p2){
+        if (yLessThanEq(p1,v->m_value) && yLessThanEq(v->m_value, p2)){
             vFunctionCall(v);
         }
     }else{
         yNode<T>* v_l = v->m_leftNode;
         while (!v_l->isLeaf()){
-            if (p1 <= v_l->m_value){
+            if (yLessThan(p1,v_l->m_value)){
                 reportSubtree(v_l->m_rightNode, vFunctionCall);
                 v_l = v_l->m_leftNode;
             }else{
                 v_l = v_l->m_rightNode;
             }
         }
-        if (v_l->m_value >= p1 && v_l->m_value <= p2){
+//        if (v_l->m_value >= p1 && v_l->m_value <= p2){
+        if (yLessThanEq(p1, v_l->m_value) && yLessThanEq(v_l->m_value,p2)){
             vFunctionCall(v_l);
         }
         yNode<T>* v_r = v->m_rightNode;
         while (!v_r->isLeaf()){
-            if (p2 > v_r->m_value){
+//            if (p2 > v_r->m_value){
+            if (yLessThan(v_r->m_value, p2)){
                 reportSubtree(v_r->m_leftNode, vFunctionCall);
                 v_r = v_r->m_rightNode;
             }else{
                 v_r = v_r->m_leftNode;
             }
         }
-        if (v_r->m_value >= p1 && v_r->m_value <= p2){
+        if (yLessThanEq(p1, v_r->m_value) && yLessThanEq(v_r->m_value,p2)){
             vFunctionCall(v_r);
         }
     }
