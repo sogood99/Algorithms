@@ -209,7 +209,7 @@ xNode<T>* xRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
         }
     }
     xNode<T>* leftNode = buildRangeTree(newArr, m+1);
-    xNode<T>* rightNode = buildRangeTree(newArr + m + 1, size-m-1);
+    xNode<T>* rightNode = buildRangeTree(newArr+m+1, size-m-1);
     yRangeTree<T>* ytree = new yRangeTree<T>(arr, size);
     return new xNode<T>(med, ytree, leftNode, rightNode);
 }
