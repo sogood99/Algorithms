@@ -180,12 +180,23 @@ yNode<T>* yRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
 }
 
 template <typename T>
+bool yLessThan(Pair<T> p1, Pair<T> p2){
+    return p1.getY() < p2.getY() || (p1.getY() == p2.getY() && p1.getX() < p2.getX());
+}
+
+template <typename T>
+bool yLessThanEq(Pair<T> p1, Pair<T> p2){
+    return p1.getY() < p2.getY() || (p1.getY() == p2.getY() && p1.getX() <= p2.getX());
+}
+
+template <typename T>
 yNode<T>* yRangeTree<T>::findSplittingNode(Pair<T> p1, Pair<T> p2){
     if (m_root == nullptr)
         return nullptr;
     yNode<T>* v = m_root;
-    while (!v->isLeaf() && (p2 <= v->m_value || p1 > v->m_value)){
-        if (p2 <= v->m_value){
+//    while (!v->isLeaf() && (p2 <= v->m_value || p1 > v->m_value)){
+    while (!v->isLeaf() && (yLessThanEq(p2, v->m_value) || yLessThan(v->m_value, p1))){
+        if (yLessThanEq(p2, v->m_value)){
             v = v->m_leftNode;
         }else{
             v = v->m_rightNode;
@@ -202,16 +213,6 @@ void yRangeTree<T>::reportSubtree(yNode<T>* n, void (*vFunctionCall)(yNode<T>*))
     }
     reportSubtree(n->m_leftNode, vFunctionCall);
     reportSubtree(n->m_rightNode, vFunctionCall);
-}
-
-template <typename T>
-bool yLessThan(Pair<T> p1, Pair<T> p2){
-    return p1.getY() < p2.getY() || (p1.getY() == p2.getY() && p1.getX() < p2.getX());
-}
-
-template <typename T>
-bool yLessThanEq(Pair<T> p1, Pair<T> p2){
-    return p1.getY() < p2.getY() || (p1.getY() == p2.getY() && p1.getX() <= p2.getX());
 }
 
 template <typename T>
