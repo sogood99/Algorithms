@@ -13,7 +13,7 @@ public:
     void setX(T x);
     void setY(T y);
     bool operator> (const Pair<T> &other) const{
-        other < *this;
+        return other < *this;
     }
     bool operator<= (const Pair<T> &other) const{
         return (m_first < other.m_first)||(m_first == other.m_first && m_second <= other.m_second);
