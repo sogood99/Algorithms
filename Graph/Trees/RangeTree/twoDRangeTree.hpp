@@ -115,7 +115,6 @@ int partition(T arr[], int l, int r, T x){
 }
 // median finding and pair definition
 
-
 template <typename T>
 class yNode{
 public:
@@ -125,6 +124,8 @@ public:
     Pair<T> m_value = Pair<T>();
     yNode<T>* m_leftNode = nullptr;
     yNode<T>* m_rightNode = nullptr;
+public:
+    bool isLeaf(){return m_leftNode == nullptr && m_rightNode == nullptr;}
 };
 
 template <typename T>
@@ -134,8 +135,12 @@ public:
     yRangeTree(Pair<T> arr[], int size);
 public:
     yNode<T>* buildRangeTree(Pair<T> arr[], int size);
+    void rangeQuery(T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg));
 public:
     yNode<T>* m_root = nullptr;
+protected:
+    yNode<T>* findSplittingNode(T y_l,T y_r);
+    void reportSubtree(yNode<T>* n, void (*vFunctionCall)(yNode<T>*));
 };
 
 template <typename T>
@@ -158,6 +163,68 @@ yNode<T>* yRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
 }
 
 template <typename T>
+yNode<T>* yRangeTree<T>::findSplittingNode(T y_l, T y_r){
+    if (m_root == nullptr)
+        return nullptr;
+    yNode<T>* v = m_root;
+    while (!v->isLeaf() && (y_r <= v->m_value.getY() || y_l > v->m_value.getY())){
+        if (y_r <= v->m_value.getY()){
+            v = v->m_leftNode;
+        }else{
+            v = v->m_rightNode;
+        }
+    }
+    return v;
+}
+
+template <typename T>
+void yRangeTree<T>::reportSubtree(yNode<T>* n, void (*vFunctionCall)(yNode<T>*)){
+    if (n->isLeaf()){
+        vFunctionCall(n);
+        return;
+    }
+    reportSubtree(n->m_leftNode, vFunctionCall);
+    reportSubtree(n->m_rightNode, vFunctionCall);
+}
+
+template <typename T>
+void yRangeTree<T>::rangeQuery(T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg)){
+    yNode<T>* v = findSplittingNode(y_l, y_r);
+    if (v->isLeaf()){
+        if (v->m_value.getY() >= y_l && v->m_value.getY() <= y_r){
+            vFunctionCall(v);
+        }
+    }else{
+        yNode<T>* v_l = v->m_leftNode;
+        while (!v_l->isLeaf()){
+            if (y_l <= v_l->m_value.getY()){
+                reportSubtree(v_l->m_rightNode, vFunctionCall);
+                v_l = v_l->m_leftNode;
+            }else{
+                v_l = v_l->m_rightNode;
+            }
+        }
+        if (v_l->m_value.getY() >= y_l && v_l->m_value.getY() <= y_r){
+            vFunctionCall(v_l);
+        }
+        yNode<T>* v_r = v->m_rightNode;
+        while (!v_r->isLeaf()){
+            if (y_r > v_r->m_value.getY()){
+                reportSubtree(v_r->m_leftNode, vFunctionCall);
+                v_r = v_r->m_rightNode;
+            }else{
+                v_r = v_r->m_leftNode;
+            }
+        }
+        if (v_r->m_value.getY() >= y_l && v_r->m_value.getY() <= y_r){
+            vFunctionCall(v_r);
+        }
+    }
+}
+
+// above is yRangeTree()
+
+template <typename T>
 class xNode{
 public:
     xNode(T x = T(), yRangeTree<T>* ytree = nullptr, xNode<T>* leftNode = nullptr,
@@ -168,6 +235,8 @@ public:
     xNode<T>* m_leftNode = nullptr;
     xNode<T>* m_rightNode = nullptr;
     yRangeTree<T>* m_yTree = nullptr;
+public:
+    bool isLeaf(){return m_leftNode == nullptr && m_rightNode == nullptr;}
 };
 
 template <typename T>
@@ -177,6 +246,10 @@ public:
 public:
     xNode<T>* buildRangeTree(Pair<T> arr[], int size);// assume array is sorted on y
     xNode<T>* m_root = nullptr;
+public:
+    void rangeQuery(T x_l, T x_r, T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg));
+public:
+    xNode<T>* findSplittingNode(T x_l,T x_r);
 };
 
 template <typename T>
@@ -199,7 +272,8 @@ xNode<T>* xRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
     }
     T med = kthSmallest(arrP, 0, size - 1, (size+1) >> 1);
     int i = 0, j = 0, m = (size - 1)/2;
-    for (int k = 0; k < size; k++){
+    int k;
+    for (k = 0; k < size && i <= m; k++){
         if (arr[k].getX() <= med){
             newArr[i] = arr[k];
             i++;
@@ -208,10 +282,68 @@ xNode<T>* xRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
             j++;
         }
     }
+    while (j < size - m - 1){
+        newArr[m+1+j] = arr[k];
+        j++;k++;
+    }
     xNode<T>* leftNode = buildRangeTree(newArr, m+1);
     xNode<T>* rightNode = buildRangeTree(newArr+m+1, size-m-1);
     yRangeTree<T>* ytree = new yRangeTree<T>(arr, size);
     return new xNode<T>(med, ytree, leftNode, rightNode);
+}
+
+template <typename T>
+xNode<T>* xRangeTree<T>::findSplittingNode(T x_l,T x_r){
+    if (m_root == nullptr)
+        return nullptr;
+    xNode<T>* v = m_root;
+    while (!v->isLeaf() && (x_r <= v->m_xvalue || x_l > v->m_xvalue)){
+        if (x_r <= v->m_xvalue){
+            v = v->m_leftNode;
+        }else{
+            v = v->m_rightNode;
+        }
+    }
+    return v;
+}
+
+template <typename T>
+void xRangeTree<T>::rangeQuery(T x_l, T x_r, T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg)){
+    xNode<T>* v = findSplittingNode(x_l, x_r);
+    if (v->isLeaf()){
+        if (v->m_xvalue >= x_l && v->m_xvalue <= x_r){
+//            vFunctionCall(v);
+            v->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+        }
+    }else{
+        xNode<T>* v_l = v->m_leftNode;
+        while (!v_l->isLeaf()){
+            if (x_l <= v_l->m_xvalue){
+//                reportSubtree(v_l->m_rightNode, vFunctionCall);
+                v_l->m_rightNode->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+                v_l = v_l->m_leftNode;
+            }else{
+                v_l = v_l->m_rightNode;
+            }
+        }
+        if (v_l->m_xvalue >= x_l && v_l->m_xvalue <= x_r){
+            v_l->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+        }
+        xNode<T>* v_r = v->m_rightNode;
+        while (!v_r->isLeaf()){
+            if (x_r > v_r->m_xvalue){
+//                reportSubtree(v_r->m_LeftNode, vFunctionCall);
+                v_r->m_leftNode->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+                v_r = v_r->m_rightNode;
+            }else{
+                v_r = v_r->m_leftNode;
+            }
+        }
+        if (v_r->m_xvalue >= x_l && v_r->m_xvalue <= x_r){
+//            vFunctionCall(v_r);
+            v_r->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+        }
+    }
 }
 
 #endif // TWODRANGETREE_HPP
