@@ -12,6 +12,21 @@ public:
 public:
     void setX(T x);
     void setY(T y);
+    bool operator> (const Pair<T> &other) const{
+        other < *this;
+    }
+    bool operator<= (const Pair<T> &other) const{
+        return (m_first < other.m_first)||(m_first == other.m_first && m_second <= other.m_second);
+    }
+    bool operator== (const Pair<T> &other) const{
+        return m_first == other.m_first && m_second == other.m_second;
+    }
+    bool operator< (const Pair<T> &other) const{
+        return (m_first < other.m_first)||(m_first == other.m_first && m_second < other.m_second);
+    }
+    bool operator>= (const Pair<T> &other) const{
+        return other <= *this;
+    }
 protected:
     T m_first = T();
     T m_second = T();
@@ -39,7 +54,8 @@ void insSort(T* arr, int size){
     if (size <= 1){
         return;
     }
-    int i, j, key;
+    int i, j;
+    T key;
     for (i = 1; i < size; i++){
         key = arr[i];
         j = i-1;
@@ -61,7 +77,7 @@ T findMedian(T arr[], int n){
 }
 
 template <typename T>
-int kthSmallest(T arr[], int l, int r, int k){
+T kthSmallest(T arr[], int l, int r, int k){
     if (k > 0 && k <= r - l + 1){
         int n = r-l+1;
         int i;
@@ -85,7 +101,7 @@ int kthSmallest(T arr[], int l, int r, int k){
 
         return kthSmallest(arr, pos+1, r, k-pos+l-1);
     }
-    return -1;
+    return Pair<int>(2147483647,2147483647);
 }
 
 template <typename T>
@@ -135,11 +151,11 @@ public:
     yRangeTree(Pair<T> arr[], int size);
 public:
     yNode<T>* buildRangeTree(Pair<T> arr[], int size);
-    void rangeQuery(T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg));
+    void rangeQuery(Pair<T> p1, Pair<T> p2, void (*vFunctionCall)(yNode<T>* arg));
 public:
     yNode<T>* m_root = nullptr;
 protected:
-    yNode<T>* findSplittingNode(T y_l,T y_r);
+    yNode<T>* findSplittingNode(Pair<T> p1, Pair<T> p2);
     void reportSubtree(yNode<T>* n, void (*vFunctionCall)(yNode<T>*));
 };
 
@@ -163,12 +179,12 @@ yNode<T>* yRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
 }
 
 template <typename T>
-yNode<T>* yRangeTree<T>::findSplittingNode(T y_l, T y_r){
+yNode<T>* yRangeTree<T>::findSplittingNode(Pair<T> p1, Pair<T> p2){
     if (m_root == nullptr)
         return nullptr;
     yNode<T>* v = m_root;
-    while (!v->isLeaf() && (y_r <= v->m_value.getY() || y_l > v->m_value.getY())){
-        if (y_r <= v->m_value.getY()){
+    while (!v->isLeaf() && (p2 <= v->m_value || p1 > v->m_value)){
+        if (p2 <= v->m_value){
             v = v->m_leftNode;
         }else{
             v = v->m_rightNode;
@@ -188,35 +204,35 @@ void yRangeTree<T>::reportSubtree(yNode<T>* n, void (*vFunctionCall)(yNode<T>*))
 }
 
 template <typename T>
-void yRangeTree<T>::rangeQuery(T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg)){
-    yNode<T>* v = findSplittingNode(y_l, y_r);
+void yRangeTree<T>::rangeQuery(Pair<T> p1, Pair<T> p2, void (*vFunctionCall)(yNode<T>* arg)){
+    yNode<T>* v = findSplittingNode(p1, p2);
     if (v->isLeaf()){
-        if (v->m_value.getY() >= y_l && v->m_value.getY() <= y_r){
+        if (v->m_value >= p1 && v->m_value <= p2){
             vFunctionCall(v);
         }
     }else{
         yNode<T>* v_l = v->m_leftNode;
         while (!v_l->isLeaf()){
-            if (y_l <= v_l->m_value.getY()){
+            if (p1 <= v_l->m_value){
                 reportSubtree(v_l->m_rightNode, vFunctionCall);
                 v_l = v_l->m_leftNode;
             }else{
                 v_l = v_l->m_rightNode;
             }
         }
-        if (v_l->m_value.getY() >= y_l && v_l->m_value.getY() <= y_r){
+        if (v_l->m_value >= p1 && v_l->m_value <= p2){
             vFunctionCall(v_l);
         }
         yNode<T>* v_r = v->m_rightNode;
         while (!v_r->isLeaf()){
-            if (y_r > v_r->m_value.getY()){
+            if (p2 > v_r->m_value){
                 reportSubtree(v_r->m_leftNode, vFunctionCall);
                 v_r = v_r->m_rightNode;
             }else{
                 v_r = v_r->m_leftNode;
             }
         }
-        if (v_r->m_value.getY() >= y_l && v_r->m_value.getY() <= y_r){
+        if (v_r->m_value >= p1 && v_r->m_value <= p2){
             vFunctionCall(v_r);
         }
     }
@@ -227,11 +243,11 @@ void yRangeTree<T>::rangeQuery(T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg
 template <typename T>
 class xNode{
 public:
-    xNode(T x = T(), yRangeTree<T>* ytree = nullptr, xNode<T>* leftNode = nullptr,
-          xNode<T>* rightNode = nullptr): m_xvalue(x), m_leftNode(leftNode), m_rightNode(rightNode),
+    xNode(Pair<T> p = Pair<T>(), yRangeTree<T>* ytree = nullptr, xNode<T>* leftNode = nullptr,
+          xNode<T>* rightNode = nullptr): m_value(p), m_leftNode(leftNode), m_rightNode(rightNode),
         m_yTree(ytree){}
 public:
-    T m_xvalue = T();
+    Pair<T> m_value = Pair<T>();
     xNode<T>* m_leftNode = nullptr;
     xNode<T>* m_rightNode = nullptr;
     yRangeTree<T>* m_yTree = nullptr;
@@ -247,9 +263,9 @@ public:
     xNode<T>* buildRangeTree(Pair<T> arr[], int size);// assume array is sorted on y
     xNode<T>* m_root = nullptr;
 public:
-    void rangeQuery(T x_l, T x_r, T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg));
+    void rangeQuery(Pair<T> p1, Pair<T> p2, void (*vFunctionCall)(yNode<T>* arg));
 public:
-    xNode<T>* findSplittingNode(T x_l,T x_r);
+    xNode<T>* findSplittingNode(Pair<T> p1, Pair<T> p2);
 };
 
 template <typename T>
@@ -264,27 +280,23 @@ xNode<T>* xRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
     }
     if (size == 1){
         yRangeTree<T>* ytree = new yRangeTree<T>(arr[0]);
-        return new xNode<T>(arr[0].getX(), ytree);
+        return new xNode<T>(arr[0], ytree);
     }
-    T arrP[size]; Pair<T> newArr[size];
+    Pair<T> newArr[size];
     for (int i = 0; i < size; i++){
-        arrP[i] = arr[i].getX();
+        newArr[i] = arr[i];
     }
-    T med = kthSmallest(arrP, 0, size - 1, (size+1) >> 1);
+    Pair<T> med = kthSmallest(newArr, 0, size - 1, (size+1)/2);
     int i = 0, j = 0, m = (size - 1)/2;
     int k;
-    for (k = 0; k < size && i <= m; k++){
-        if (arr[k].getX() <= med){
+    for (k = 0; k < size; k++){
+        if (arr[k] <= med){
             newArr[i] = arr[k];
             i++;
         }else{
             newArr[m+1+j] = arr[k];
             j++;
         }
-    }
-    while (j < size - m - 1){
-        newArr[m+1+j] = arr[k];
-        j++;k++;
     }
     xNode<T>* leftNode = buildRangeTree(newArr, m+1);
     xNode<T>* rightNode = buildRangeTree(newArr+m+1, size-m-1);
@@ -293,12 +305,12 @@ xNode<T>* xRangeTree<T>::buildRangeTree(Pair<T> arr[], int size){
 }
 
 template <typename T>
-xNode<T>* xRangeTree<T>::findSplittingNode(T x_l,T x_r){
+xNode<T>* xRangeTree<T>::findSplittingNode(Pair<T> p1, Pair<T> p2){
     if (m_root == nullptr)
         return nullptr;
     xNode<T>* v = m_root;
-    while (!v->isLeaf() && (x_r <= v->m_xvalue || x_l > v->m_xvalue)){
-        if (x_r <= v->m_xvalue){
+    while (!v->isLeaf() && (p2 <= v->m_value || p1 > v->m_value)){
+        if (p2 <= v->m_value){
             v = v->m_leftNode;
         }else{
             v = v->m_rightNode;
@@ -308,40 +320,36 @@ xNode<T>* xRangeTree<T>::findSplittingNode(T x_l,T x_r){
 }
 
 template <typename T>
-void xRangeTree<T>::rangeQuery(T x_l, T x_r, T y_l, T y_r, void (*vFunctionCall)(yNode<T>* arg)){
-    xNode<T>* v = findSplittingNode(x_l, x_r);
+void xRangeTree<T>::rangeQuery(Pair<T> p1, Pair<T> p2, void (*vFunctionCall)(yNode<T>* arg)){
+    xNode<T>* v = findSplittingNode(p1, p2);
     if (v->isLeaf()){
-        if (v->m_xvalue >= x_l && v->m_xvalue <= x_r){
-//            vFunctionCall(v);
-            v->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+        if (v->m_value >= p1 && v->m_value <= p2){
+            v->m_yTree->rangeQuery(p1, p2, vFunctionCall);
         }
     }else{
         xNode<T>* v_l = v->m_leftNode;
         while (!v_l->isLeaf()){
-            if (x_l <= v_l->m_xvalue){
-//                reportSubtree(v_l->m_rightNode, vFunctionCall);
-                v_l->m_rightNode->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+            if (p1 <= v_l->m_value){
+                v_l->m_rightNode->m_yTree->rangeQuery(p1, p2, vFunctionCall);
                 v_l = v_l->m_leftNode;
             }else{
                 v_l = v_l->m_rightNode;
             }
         }
-        if (v_l->m_xvalue >= x_l && v_l->m_xvalue <= x_r){
-            v_l->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+        if (v_l->m_value >= p1 && v_l->m_value <= p2){
+            v_l->m_yTree->rangeQuery(p1, p2, vFunctionCall);
         }
         xNode<T>* v_r = v->m_rightNode;
         while (!v_r->isLeaf()){
-            if (x_r > v_r->m_xvalue){
-//                reportSubtree(v_r->m_LeftNode, vFunctionCall);
-                v_r->m_leftNode->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+            if (p2 > v_r->m_value){
+                v_r->m_leftNode->m_yTree->rangeQuery(p1, p2, vFunctionCall);
                 v_r = v_r->m_rightNode;
             }else{
                 v_r = v_r->m_leftNode;
             }
         }
-        if (v_r->m_xvalue >= x_l && v_r->m_xvalue <= x_r){
-//            vFunctionCall(v_r);
-            v_r->m_yTree->rangeQuery(y_l, y_r, vFunctionCall);
+        if (v_r->m_value >= p1 && v_r->m_value <= p2){
+            v_r->m_yTree->rangeQuery(p1, p2, vFunctionCall);
         }
     }
 }
